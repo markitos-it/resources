@@ -20,5 +20,6 @@ git config init.defaultBranch main && \
 git config pull.rebase false && \
 git config push.default simple && \
 git config credential.helper osxkeychain && \
+git config pull.rebase false && \
 git config core.filemode false'
 #:[.'.]:>-==================================================================================
