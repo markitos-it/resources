@@ -5,8 +5,8 @@ on:
   pull_request:
 
 permissions:
-  contents: read        # Para que pueda leer el código y el historial
-  pull-requests: write  # Para que pueda comentar en los PRs si encuentra fugas
+  contents: read # Para que pueda leer el código y el historial
+  pull-requests: write # Para que pueda comentar en los PRs si encuentra fugas
   security-events: write # Opcional: para que aparezca en la pestaña "Security" de GitHub
 
 jobs:
@@ -17,6 +17,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Gitleaks
+        run: |
+          VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name)
+          curl -LO https://github.com/gitleaks/gitleaks/releases/download/${VERSION}/gitleaks_${VERSION:1}_linux_x64.tar.gz
+          tar -xf gitleaks_${VERSION:1}_linux_x64.tar.gz
+          sudo mv gitleaks /usr/local/bin/
+      - name: Run Gitleaks
+        run: gitleaks detect --source=. -v
