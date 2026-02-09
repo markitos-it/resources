@@ -2,6 +2,13 @@ name: gitleaks
 on:
   push:
     branches: [main]
+  pull_request:
+
+permissions:
+  contents: read        # Para que pueda leer el código y el historial
+  pull-requests: write  # Para que pueda comentar en los PRs si encuentra fugas
+  security-events: write # Opcional: para que aparezca en la pestaña "Security" de GitHub
+
 jobs:
   scan:
     name: gitleaks
