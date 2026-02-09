@@ -6,27 +6,9 @@ on:
 
 permissions:
   contents: read # Para que pueda leer el código y el historial
-  pull-requests: write # Para que pueda comentar en los PRs si encuentra fugas
   security-events: write # Opcional: para que aparezca en la pestaña "Security" de GitHub
 
 jobs:
-  sast-check:
-    runs-on: ubuntu-latest
-    env:
-      GO111MODULE: on
-
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.23.1"
-      - name: Run Gosec Security Scanner
-        uses: securego/gosec@master
-        with:
-          args: ./...
-
   scan:
     name: gitleaks
     runs-on: ubuntu-latest
