@@ -9,7 +9,7 @@ permissions:
   security-events: write # Opcional: para que aparezca en la pestaña "Security" de GitHub
 
 jobs:
-  scan:
+  secrets-scan:
     name: gitleaks
     runs-on: ubuntu-latest
     steps:
@@ -23,4 +23,10 @@ jobs:
           tar -xf gitleaks_${VERSION:1}_linux_x64.tar.gz
           sudo mv gitleaks /usr/local/bin/
       - name: Run Gitleaks
-        run: gitleaks detect --source=. -v
+        # Executes Gitleaks security scan with the following options:
+        # - detect: Scans the repository for hardcoded secrets, API keys, tokens, and other sensitive information
+        # - --source=.: Specifies the current directory as the source to scan
+        # - -v: Enables verbose output to provide detailed scanning information
+        # - --redact: Masks/hides the actual secret values in the output, showing only their location and type
+        #            This prevents accidentally exposing real secrets in CI/CD logs or console output
+        run: gitleaks detect --source=. -v --redact
