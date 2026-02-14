@@ -26,7 +26,7 @@ jobs:
         uses: zizmorcore/zizmor-action@0dce2577a4760a2749d8cfb7a84b7d5585ebcb7d
 
       - name: ShellCheck
-        uses: ludeeus/action-shellcheck@9480a055373a9073796d44f77c0500122e37905a
+        uses: ludeeus/action-shellcheck@00cae500b0840c6d50cf7a346da87192f16ca677
         with:
           severity: warning
 
