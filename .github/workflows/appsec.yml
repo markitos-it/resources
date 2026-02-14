@@ -3,13 +3,14 @@ on: [push, pull_request]
 
 permissions:
   contents: read
+  security-events: write
 
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -22,18 +23,18 @@ jobs:
           chmod +x gitleaks
           ./gitleaks detect --source=. -v --redact
 
-      - name: Zizmor (GitHub Actions Audit)
-        run: |
-          pip install zizmor
-          /home/runner/.local/bin/zizmor .
+      - name: Run zizmor 🌈
+        uses: zizmorcore/zizmor-action@0dce2577a4760a2749d8cfb7a84b7d5585ebcb7d # v0.5.0
+        with:
+          arguments: "--persona=artisan" # Opcional: ajusta el nivel de rigor
 
       - name: ShellCheck (Scripts)
-        uses: ludeeus/action-shellcheck@master
+        uses: ludeeus/action-shellcheck@00cae500b0840c6d50cf7a346da87192f16ca677 # v2.0.0
         with:
           severity: warning
 
       - name: Trivy (Infrastructure)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@18f251a5bc27e384836484e55e523f2f8428801d # v0.28.0
         with:
           scan-type: 'fs'
           exit-code: '1'
