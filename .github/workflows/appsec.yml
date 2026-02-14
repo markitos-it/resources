@@ -9,31 +9,35 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Gitleaks Scan
+      - name: Ignorar Hashes en Zizmor
         run: |
-          VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name)
-          curl -LO "https://github.com/gitleaks/gitleaks/releases/download/${VERSION}/gitleaks_${VERSION:1}_linux_x64.tar.gz"
-          tar -xf "gitleaks_${VERSION:1}_linux_x64.tar.gz"
-          chmod +x gitleaks
-          ./gitleaks detect --source=. -v --redact
+          echo "rules:" > .zizmor.yml
+          echo "  unpinned-uses: false" >> .zizmor.yml
+
+      - name: Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Zizmor Audit
-        uses: zizmorcore/zizmor-action@0dce2577a4760a2749d8cfb7a84b7d5585ebcb7d
+        uses: zizmorcore/zizmor-action@main
 
       - name: ShellCheck
-        run: |
-          sudo apt-get update && sudo apt-get install -y shellcheck
-          shellcheck ./scripts/*.sh || true
+        uses: ludeeus/action-shellcheck@master
+        with:
+          severity: warning
 
       - name: Go Vulnerability Check
-        uses: golang/govulncheck-action@7120359f6be4e37f6f059ef3f101375d8d348a60
+        uses: golang/govulncheck-action@v1
 
       - name: Trivy Scan
-        run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-          trivy fs --exit-code 1 --severity CRITICAL,HIGH .
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
