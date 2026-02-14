@@ -15,7 +15,7 @@ jobs:
           persist-credentials: false
 
       - name: Gitleaks Scan
-        run: docker run --rm -v ${{ github.workspace }}:/code zricethezav/gitleaks:latest detect --source="/code" -q --redact
+        run: docker run --rm -v ${{ github.workspace }}:/code zricethezav/gitleaks:latest detect --source="/code" --redact --no-banner
 
       - name: Zizmor Audit
         uses: zizmorcore/zizmor-action@main
