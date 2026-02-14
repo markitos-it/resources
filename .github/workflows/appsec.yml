@@ -17,7 +17,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Instalación manual con corrección de permisos y sintaxis
       - name: Install & Run Gitleaks
         run: |
           VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name)
@@ -27,14 +26,12 @@ jobs:
           ./gitleaks detect --source=. -v --redact --report-format sarif --report-path gitleaks.sarif
         continue-on-error: true 
 
-      # Análisis de Scripts Shell
       - name: ShellCheck (Scripts & Snippets)
         uses: ludeeus/action-shellcheck@master
         continue-on-error: true
 
-      # Subir resultados a la pestaña Security (Versión v4)
       - name: Upload results to Security Tab
-        uses: github/codeql-action/upload-sarif@v4 # <--- Actualizado a v4
+        uses: github/codeql-action/upload-sarif@v4
         if: always() 
         with:
           sarif_file: gitleaks.sarif

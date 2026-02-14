@@ -103,7 +103,7 @@ start_agent() {
 if [ -f "${SSH_ENV}" ]; then
 	. "${SSH_ENV}" > /dev/null
 	# Check if the agent is still running
-	if ! ps -p ${SSH_AGENT_PID:-0} > /dev/null 2>&1; then
+	if ! ps -p "${SSH_AGENT_PID:-0}" > /dev/null 2>&1; then
 		start_agent
 	fi
 else
