@@ -23,7 +23,7 @@ jobs:
           ./gitleaks detect --source=. -v --redact
 
       - name: Zizmor Audit
-        uses: zizmorcore/zizmor-action@41215b0266e771cc24083a2d59663d2e132c3248
+        uses: zizmorcore/zizmor-action@e37812581699f7d26859e2189d2d0c24385055b8
 
       - name: ShellCheck
         uses: ludeeus/action-shellcheck@9480a055373a9073796d44f77c0500122e37905a
