@@ -14,28 +14,5 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Ignorar Hashes en Zizmor
-        run: |
-          echo "rules:" > .zizmor.yml
-          echo "  unpinned-uses: false" >> .zizmor.yml
-
-      - name: Gitleaks Core Scan
-        run: docker run --rm -v ${{ github.workspace }}:/code zricethezav/gitleaks:latest detect --source="/code" -v --redact
-
-      - name: Zizmor Audit
-        uses: zizmorcore/zizmor-action@main
-
-      - name: ShellCheck
-        uses: ludeeus/action-shellcheck@master
-        with:
-          severity: warning
-
-      - name: Go Vulnerability Check
-        uses: golang/govulncheck-action@v1
-
-      - name: Trivy Scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          exit-code: '1'
-          severity: 'CRITICAL,HIGH'
+      - name: AppSec Scanner
+        uses: NirAlon/appsec_scan@latest
