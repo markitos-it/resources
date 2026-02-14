@@ -9,27 +9,28 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      # zizmor:ignore[unpinned-uses]
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Gitleaks Core Scan
         run: docker run --rm -v ${{ github.workspace }}:/code zricethezav/gitleaks:latest detect --source="/code" -v --redact
 
-      # zizmor:ignore[unpinned-uses]
       - name: Zizmor Audit
         uses: zizmorcore/zizmor-action@main
+        with:
+          fail-on-no-inputs: true
+          persona: pedantic 
 
-      - name: Semgrep OSS Scan (Recursivo)
+      - name: Semgrep OSS Scan
         run: |
           docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep \
             scan --config="auto" --error
 
-      # zizmor:ignore[unpinned-uses]
-      - name: Trivy Scan (SCA & Config)
+      - name: Trivy Scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
           exit-code: '1'
-          severity: 'CRITICAL,HIGH'
+          severity: 'CRITICAL,HIGH,MEDIUM'
