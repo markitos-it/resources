@@ -28,8 +28,18 @@ jobs:
         with:
           severity: warning
 
+      - name: Check for Go Code
+        id: check_go
+        run: |
+          if [ -f "go.mod" ]; then
+            echo "has_go=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_go=false" >> $GITHUB_OUTPUT
+          fi
+
       # zizmor:ignore[unpinned-uses]
       - name: Go Vulnerability Check
+        if: steps:check_go.outputs.has_go == 'true'
         uses: golang/govulncheck-action@v1
 
       # zizmor:ignore[unpinned-uses]
