@@ -3,30 +3,32 @@ on: [push, pull_request]
 
 permissions:
   contents: read
+
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Gitleaks Scan
         run: |
           VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name)
-          curl -LO https://github.com/gitleaks/gitleaks/releases/download/${VERSION}/gitleaks_${VERSION:1}_linux_x64.tar.gz
-          tar -xf gitleaks_${VERSION:1}_linux_x64.tar.gz
+          curl -LO "https://github.com/gitleaks/gitleaks/releases/download/${VERSION}/gitleaks_${VERSION:1}_linux_x64.tar.gz"
+          tar -xf "gitleaks_${VERSION:1}_linux_x64.tar.gz"
           chmod +x gitleaks
           ./gitleaks detect --source=. -v --redact
       - name: Zizmor Audit
         run: |
           pip install zizmor
-          zizmor . 
+          /home/runner/.local/bin/zizmor .
       - name: ShellCheck
-        uses: ludeeus/action-shellcheck@master
+        uses: ludeeus/action-shellcheck@00cae500b0840c6d50cf7a346da87192f16ca677
         with:
           severity: warning 
       - name: Trivy Scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@18f251a5bc27e384836484e55e523f2f8428801d
         with:
           scan-type: 'fs'
           exit-code: '1' 
