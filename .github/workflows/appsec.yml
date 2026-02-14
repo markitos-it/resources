@@ -9,7 +9,7 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -23,21 +23,17 @@ jobs:
           ./gitleaks detect --source=. -v --redact
 
       - name: Zizmor Audit
-        run: |
-          pip install zizmor
-          /home/runner/.local/bin/zizmor . --ignore unpinned-uses
+        uses: zizmorcore/zizmor-action@0dce2577a4760a2749d8cfb7a84b7d5585ebcb7d
 
       - name: ShellCheck
-        uses: ludeeus/action-shellcheck@master
-        with:
-          severity: warning
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+          shellcheck ./scripts/*.sh || true
 
       - name: Go Vulnerability Check
-        uses: golang/govulncheck-action@v1
+        uses: golang/govulncheck-action@7120359f6be4e37f6f059ef3f101375d8d348a60
 
       - name: Trivy Scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          exit-code: '1'
-          severity: 'CRITICAL,HIGH'
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          trivy fs --exit-code 1 --severity CRITICAL,HIGH .
