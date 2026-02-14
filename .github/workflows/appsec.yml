@@ -23,12 +23,15 @@ jobs:
           ./gitleaks detect --source=. -v --redact
 
       - name: Zizmor Audit
-        uses: zizmorcore/zizmor-action@e37812581699f7d26859e2189d2d0c24385055b8
+        uses: zizmorcore/zizmor-action@0dce2577a4760a2749d8cfb7a84b7d5585ebcb7d
 
       - name: ShellCheck
         uses: ludeeus/action-shellcheck@9480a055373a9073796d44f77c0500122e37905a
         with:
           severity: warning
+
+      - name: Go Vulnerability Check
+        uses: golang/govulncheck-action@b81442a4df1ee5660f59a6975cda67e133038691
 
       - name: Trivy Scan
         uses: aquasecurity/trivy-action@18f251a5bc27e384836484e55e523f2f8428801d
