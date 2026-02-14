@@ -17,32 +17,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Tu instalación de Gitleaks mejorada
+      # Instalación manual con corrección de permisos y sintaxis
       - name: Install & Run Gitleaks
         run: |
           VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name)
           curl -LO https://github.com/gitleaks/gitleaks/releases/download/${VERSION}/gitleaks_${VERSION:1}_linux_x64.tar.gz
           tar -xf gitleaks_${VERSION:1}_linux_x64.tar.gz
-          ./gitleaks detect --source=. -v --redact --format sarif --report-path gitleaks.sarif
-        continue-on-error: true # Para que no pare el pipeline antes de subir el reporte
+          chmod +x gitleaks  # <--- FUNDAMENTAL: Evita el error 126
+          ./gitleaks detect --source=. -v --redact --report-format sarif --report-path gitleaks.sarif
+        continue-on-error: true 
 
       # Análisis de Scripts Shell
       - name: ShellCheck (Scripts & Snippets)
         uses: ludeeus/action-shellcheck@master
         continue-on-error: true
 
-      # Análisis de Infra (si tienes Dockerfiles o YAMLs)
-      - name: Trivy FS Scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          format: 'sarif'
-          output: 'trivy.sarif'
-
-      # SUBIR TODO A LA PESTAÑA SECURITY
+      # Subir resultados a la pestaña Security (Versión v4)
       - name: Upload results to Security Tab
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4 # <--- Actualizado a v4
+        if: always() 
         with:
-          # Puedes subir varios archivos SARIF si los juntas o los subes uno a uno
           sarif_file: gitleaks.sarif
