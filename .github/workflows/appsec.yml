@@ -3,8 +3,6 @@ on: [push, pull_request]
 
 permissions:
   contents: read
-  security-events: write
-
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -12,39 +10,24 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      # 1. Secretos con reporte SARIF
-      - name: Install & Run Gitleaks
+      - name: Gitleaks Scan
         run: |
           VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name)
           curl -LO https://github.com/gitleaks/gitleaks/releases/download/${VERSION}/gitleaks_${VERSION:1}_linux_x64.tar.gz
           tar -xf gitleaks_${VERSION:1}_linux_x64.tar.gz
           chmod +x gitleaks
-          ./gitleaks detect --source=. -v --redact --report-format sarif --report-path gitleaks.sarif
-        continue-on-error: true
-
-      # 2. El guardián de tus propias Actions
-      - name: Zizmor (GitHub Actions Security)
+          ./gitleaks detect --source=. -v --redact
+      - name: Zizmor Audit
         run: |
           pip install zizmor
-          zizmor . --format sarif > zizmor.sarif
-        continue-on-error: true
-
-      # 3. Scripts de Shell
+          zizmor . 
       - name: ShellCheck
         uses: ludeeus/action-shellcheck@master
-
-      # 4. Infra y Archivos sueltos
-      - name: Trivy FS Scan
+        with:
+          severity: warning 
+      - name: Trivy Scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
-          format: 'sarif'
-          output: 'trivy.sarif'
-
-      # 5. Centralización de resultados
-      - name: Upload to Security Tab
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          sarif_file: . # Esto subirá todos los .sarif que encuentre en el root
+          exit-code: '1' 
+          severity: 'CRITICAL,HIGH'
