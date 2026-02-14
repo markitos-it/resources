@@ -141,10 +141,8 @@ echo ""
 os_name="$(uname -s)"
 if [[ "$os_name" == "Darwin" ]]; then
 	profile_file="$HOME/.zshrc"
-	shell_name="zsh"
 else
 	profile_file="$HOME/.bashrc"
-	shell_name="bash"
 fi
 
 # Add ssh-agent smart auto-start to profile
