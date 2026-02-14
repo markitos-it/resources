@@ -1,4 +1,4 @@
-name: gitleaks
+name: appsec
 on:
   push:
     branches: [main]
@@ -6,32 +6,43 @@ on:
 
 permissions:
   contents: read
-  # La permisión 'security-events: write' permite que el workflow escriba eventos de seguridad
-  # en GitHub. Esto es necesario para que los resultados de análisis de seguridad (como SAST,
-  # DAST, dependencias vulnerables, etc.) aparezcan en la pestaña "Security" del repositorio.
-  # Sin esta permisión, los eventos generados por herramientas de seguridad no serán visibles
-  # en la interfaz de GitHub, aunque el workflow se ejecute correctamente.
-  security-events: write # Opcional: para que aparezca en la pestaña "Security" de GitHub
+  security-events: write
 
 jobs:
-  secrets-scan:
-    name: gitleaks
+  security-scan:
+    name: Security & Quality Scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install Gitleaks
+
+      # Tu instalación de Gitleaks mejorada
+      - name: Install & Run Gitleaks
         run: |
           VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name)
           curl -LO https://github.com/gitleaks/gitleaks/releases/download/${VERSION}/gitleaks_${VERSION:1}_linux_x64.tar.gz
           tar -xf gitleaks_${VERSION:1}_linux_x64.tar.gz
-          sudo mv gitleaks /usr/local/bin/
-      - name: Run Gitleaks
-        # Executes Gitleaks security scan with the following options:
-        # - detect: Scans the repository for hardcoded secrets, API keys, tokens, and other sensitive information
-        # - --source=.: Specifies the current directory as the source to scan
-        # - -v: Enables verbose output to provide detailed scanning information
-        # - --redact: Masks/hides the actual secret values in the output, showing only their location and type
-        #            This prevents accidentally exposing real secrets in CI/CD logs or console output
-        run: gitleaks detect --source=. -v --redact
+          ./gitleaks detect --source=. -v --redact --format sarif --report-path gitleaks.sarif
+        continue-on-error: true # Para que no pare el pipeline antes de subir el reporte
+
+      # Análisis de Scripts Shell
+      - name: ShellCheck (Scripts & Snippets)
+        uses: ludeeus/action-shellcheck@master
+        continue-on-error: true
+
+      # Análisis de Infra (si tienes Dockerfiles o YAMLs)
+      - name: Trivy FS Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'sarif'
+          output: 'trivy.sarif'
+
+      # SUBIR TODO A LA PESTAÑA SECURITY
+      - name: Upload results to Security Tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          # Puedes subir varios archivos SARIF si los juntas o los subes uno a uno
+          sarif_file: gitleaks.sarif
