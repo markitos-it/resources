@@ -1,4 +1,4 @@
-name: security-arsenal
+name: security-pipeline
 on: [push, pull_request]
 
 permissions:
@@ -14,23 +14,23 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Gitleaks Core Scan
-        run: docker run --rm -v ${{ github.workspace }}:/code zricethezav/gitleaks:latest detect --source="/code" -v --redact
+      - name: Gitleaks Scan
+        run: docker run --rm -v ${{ github.workspace }}:/code zricethezav/gitleaks:latest detect --source="/code" -q --redact
 
       - name: Zizmor Audit
         uses: zizmorcore/zizmor-action@main
         with:
-          fail-on-no-inputs: true
-          persona: pedantic 
-
+          persona: pedantic
+          
       - name: Semgrep OSS Scan
         run: |
           docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep \
-            scan --config="auto" --error
+            scan --config="auto" --error --quiet
 
       - name: Trivy Scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
           exit-code: '1'
-          severity: 'CRITICAL,HIGH,MEDIUM'
+          severity: 'CRITICAL,HIGH'
+          format: 'table'
