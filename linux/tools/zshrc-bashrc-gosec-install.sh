@@ -116,9 +116,6 @@ is_command() {
 echoerr() {
   echo "$@" 1>&2
 }
-log_prefix() {
-  echo "$0"
-}
 _logp=6
 log_set_priority() {
   _logp="$1"
@@ -180,7 +177,7 @@ uname_arch() {
     armv6*) arch="armv6" ;;
     armv7*) arch="armv7" ;;
   esac
-  echo ${arch}
+  echo "${arch}"
 }
 uname_os_check() {
   os=$(uname_os)
@@ -337,7 +334,6 @@ EOF
 PROJECT_NAME="gosec"
 OWNER=securego
 REPO="gosec"
-BINARY=gosec
 FORMAT=tar.gz
 OS=$(uname_os)
 ARCH=$(uname_arch)

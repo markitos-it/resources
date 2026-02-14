@@ -169,6 +169,7 @@ else
 	start_agent
 fi
 EOF
+)
 
 if [[ -f "$profile_file" ]]; then
 	# Remove old ssh-agent config if exists
