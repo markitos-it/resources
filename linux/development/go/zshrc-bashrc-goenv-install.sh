@@ -91,19 +91,18 @@ fi
 # Configure profile file
 touch "$profile_file"
 
-goenv_config='
+if grep -q 'export GOENV_ROOT=' "$profile_file"; then
+	print_warning "goenv configuration already exists in $profile_file"
+else
+	print_info "Adding goenv configuration to $profile_file..."
+	cat >> "$profile_file" <<'EOF'
 # goenv configuration
 export GOENV_ROOT="$HOME/.goenv"
 export PATH="$GOENV_ROOT/bin:$PATH"
 eval "$(goenv init -)"
 export PATH="$GOROOT/bin:$PATH"
-export PATH="$GOPATH/bin:$PATH"'
-
-if grep -q 'export GOENV_ROOT=' "$profile_file"; then
-	print_warning "goenv configuration already exists in $profile_file"
-else
-	print_info "Adding goenv configuration to $profile_file..."
-	echo "$goenv_config" >> "$profile_file"
+export PATH="$GOPATH/bin:$PATH"
+EOF
 	print_success "Configuration added"
 fi
 
@@ -155,7 +154,7 @@ add_option() {
 	fi
 
 	# Check for duplicates
-	if [[ ${version_options[@]+set} ]]; then
+	if [[ ${#version_options[@]} -gt 0 ]]; then
 		for v in "${version_options[@]}"; do
 			if [[ "$v" == "$version" ]]; then
 				return
@@ -175,10 +174,7 @@ while IFS= read -r v; do
 done <<< "$recent_versions"
 
 # Check if we have options
-options_count=0
-if [[ ${version_options[@]+set} ]]; then
-	options_count=${#version_options[@]}
-fi
+options_count=${#version_options[@]}
 
 if [[ "$options_count" -eq 0 ]]; then
 	print_error "No installable versions found."

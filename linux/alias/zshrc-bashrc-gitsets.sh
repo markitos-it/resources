@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #:[.'.]:>- ==================================================================================
 #:[.'.]:>- Marco Antonio - markitos devsecops kulture
 #:[.'.]:>- The Way of the Artisan

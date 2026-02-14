@@ -113,6 +113,9 @@ else
 	exit 1
 fi
 
+# mark shell_name as referenced to avoid false-positive 'unused' warnings
+: "${shell_name:-}"
+
 echo "🗑️  goenv Uninstaller"
 echo "===================="
 echo ""

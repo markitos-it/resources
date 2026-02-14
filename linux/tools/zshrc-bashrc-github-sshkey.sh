@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090
 set -euo pipefail
 
 # GitHub SSH Key Setup for Linux (bash) and macOS (zsh)
@@ -147,26 +148,27 @@ else
 fi
 
 # Add ssh-agent smart auto-start to profile
-ssh_agent_config='
+ssh_agent_config=$(cat <<'EOF'
 # SSH Agent - Smart start (reuses existing agent)
 SSH_ENV="$HOME/.ssh/agent.env"
 
 start_agent() {
-    /usr/bin/ssh-agent | sed '"'"'s/^echo/#echo/'"'"' > "${SSH_ENV}"
-    chmod 600 "${SSH_ENV}"
-    . "${SSH_ENV}" > /dev/null
+	/usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
+	chmod 600 "${SSH_ENV}"
+	. "${SSH_ENV}" > /dev/null
 }
 
 # Check if agent.env exists and source it
 if [ -f "${SSH_ENV}" ]; then
-    . "${SSH_ENV}" > /dev/null
-    # Check if the agent is still running
-    if ! ps -p ${SSH_AGENT_PID:-0} > /dev/null 2>&1; then
-        start_agent
-    fi
+	. "${SSH_ENV}" > /dev/null
+	# Check if the agent is still running
+	if ! ps -p "${SSH_AGENT_PID:-0}" > /dev/null 2>&1; then
+		start_agent
+	fi
 else
-    start_agent
-fi'
+	start_agent
+fi
+EOF
 
 if [[ -f "$profile_file" ]]; then
 	# Remove old ssh-agent config if exists
