@@ -9,10 +9,33 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
+      # zizmor:ignore[unpinned-uses]
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: AppSec Scanner
-        uses: NirAlon/appsec_scan@latest
+      - name: Gitleaks Core Scan
+        run: docker run --rm -v ${{ github.workspace }}:/code zricethezav/gitleaks:latest detect --source="/code" -v --redact
+
+      # zizmor:ignore[unpinned-uses]
+      - name: Zizmor Audit
+        uses: zizmorcore/zizmor-action@main
+
+      # zizmor:ignore[unpinned-uses]
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          severity: warning
+
+      # zizmor:ignore[unpinned-uses]
+      - name: Go Vulnerability Check
+        uses: golang/govulncheck-action@v1
+
+      # zizmor:ignore[unpinned-uses]
+      - name: Trivy Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
