@@ -157,7 +157,6 @@ jobs:
           compact: true
           framework: all
           output_format: cli
-          download_external_checks: false
 
   linting:
     name: Bash Linting
@@ -179,6 +178,7 @@ jobs:
       #:[.'.]:>- --severity=warning: nivel mínimo de severidad.
       #:[.'.]:>- Nota: Resultados visibles en logs del workflow.
       - name: ShellCheck Scan
+        shell: bash
         run: |
           sudo apt-get install -y shellcheck
-          find . -type f -name "*.sh" -print0 | xargs -0 shellcheck --severity=warning || true
+          find . -type f -name "*.sh" -print0 | xargs -0 shellcheck --severity=warning --shell=bash || true
