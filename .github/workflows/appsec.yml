@@ -181,4 +181,4 @@ jobs:
         shell: bash
         run: |
           sudo apt-get install -y shellcheck
-          find . -type f -name "*.sh" -not -path "*/alias/*" -print0 | xargs -0 shellcheck --severity=style --shell=bash --exclude=SC1090 || true
+          find . -type f -name "*.sh" -not -path "*/alias/*" -print0 | xargs -0 shellcheck --severity=style --shell=bash || true
