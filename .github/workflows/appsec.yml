@@ -3,7 +3,7 @@ on:
   push:
 
 permissions:
-  {}
+  contents: read
 
 jobs:
   scan:
@@ -13,16 +13,14 @@ jobs:
       group: appsec-${{ github.ref }}
       cancel-in-progress: true
     steps:
-      - name: Checkout without token
-        run: |
-          git init .
-          git remote add origin "https://github.com/${{ github.repository }}.git"
-          git fetch --depth=1 origin "${{ github.sha }}"
-          git checkout --detach FETCH_HEAD
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Gitleaks Scan
         run: |
           docker run --rm \
-            -v "$GITHUB_WORKSPACE:/repo" \
-            ghcr.io/gitleaks/gitleaks@sha256:b5918eb91b8d2473cec722f066abb4352e4ffdc4ec9f4283ec143aba9ec9ebc4 \
+            -v "${{ github.workspace }}:/repo" \
+            ghcr.io/gitleaks/gitleaks:latest \
             detect --source="/repo" --redact --no-banner
