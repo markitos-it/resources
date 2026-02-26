@@ -16,7 +16,7 @@ echo "🧹 Iniciando limpieza quirúrgica..."
 echo "🔍 Eliminando paquetes huérfanos de Go..."
 go clean -modcache -cache
 echo "🔍 Eliminando paquetes huérfanos de Snap..."
-snap list --all | awk '/desactivado/{print $1, $3}' | while read snapname rev; do sudo snap remove "$snapname" --revision="$rev"; done
+snap list --all | awk '/desactivado/{print $1, $3}' | while read -r snapname rev; do sudo snap remove "$snapname" --revision="$rev"; done
 echo "🔍 Limpiando caché y logs..."
 rm -rf ~/.cache/thumbnails/*
 sudo journalctl --vacuum-time=3d
