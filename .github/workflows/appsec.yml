@@ -175,10 +175,10 @@ jobs:
       #:[.'.]:>- Detecta bugs, código inseguro, estilo poor en bash.
       #:[.'.]:>- Opciones:
       #:[.'.]:>- find: localiza todos los archivos .sh.
-      #:[.'.]:>- --severity=warning: nivel mínimo de severidad.
+      #:[.'.]:>- --severity=style: nivel mínimo de severidad.
       #:[.'.]:>- Nota: Resultados visibles en logs del workflow.
       - name: ShellCheck Scan
         shell: bash
         run: |
           sudo apt-get install -y shellcheck
-          find . -type f -name "*.sh" -print0 | xargs -0 shellcheck --severity=warning --shell=bash || true
+          find . -type f -name "*.sh" -not -path "*/alias/*" -print0 | xargs -0 shellcheck --severity=style --shell=bash || true
