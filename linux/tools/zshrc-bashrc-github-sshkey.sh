@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1090
 set -euo pipefail
 
 # GitHub SSH Key Setup for Linux (bash) and macOS (zsh)
@@ -179,7 +178,7 @@ if [[ -f "$profile_file" ]]; then
 		sed -i.tmp '/# SSH Agent - Auto-start/,+3d' "$profile_file" 2>/dev/null || true
 		rm -f "${profile_file}.tmp"
 	fi
-	
+
 	if ! grep -q "# SSH Agent - Smart start" "$profile_file"; then
 		echo "Adding smart ssh-agent auto-start to $profile_file..."
 		echo "$ssh_agent_config" >> "$profile_file"
