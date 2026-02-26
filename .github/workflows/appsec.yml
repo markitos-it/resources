@@ -99,6 +99,7 @@ jobs:
         uses: returntocorp/semgrep-action@v1
         with:
           config: auto
+          generateSarif: "1"
 
       #:[.'.]:>- Subir resultados SARIF a GitHub Code Scanning (opcional).
       #:[.'.]:>- Requiere permissions: security-events: write.
