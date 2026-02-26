@@ -66,3 +66,61 @@ jobs:
             -v "${{ github.workspace }}:/repo" \
             ghcr.io/gitleaks/gitleaks:latest \
             detect --source="/repo" --redact --no-banner
+
+  sast:
+    name: SAST Analysis
+    runs-on: ubuntu-latest
+    concurrency:
+      group: sast-${{ github.ref }}
+      cancel-in-progress: true
+    #:[.'.]:>- Permisos para subir resultados SARIF a GitHub Code Scanning.
+    #:[.'.]:>- Opciones:
+    #:[.'.]:>- - contents: read (leer código).
+    #:[.'.]:>- - security-events: write (subir SARIF).
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      #:[.'.]:>- Checkout del código para análisis SAST.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      #:[.'.]:>- Análisis SAST con Semgrep (open source).
+      #:[.'.]:>- Escanea el código en busca de vulnerabilidades y malas prácticas.
+      #:[.'.]:>- Opciones:
+      #:[.'.]:>- - publishToken: para subir resultados a Semgrep Cloud (opcional).
+      #:[.'.]:>- - generateSarif: "1" para generar reporte SARIF compatible con GitHub.
+      #:[.'.]:>- - config: auto usa reglas recomendadas, también puedes usar:
+      #:[.'.]:>-   * p/security-audit: reglas de seguridad.
+      #:[.'.]:>-   * p/owasp-top-ten: OWASP Top 10.
+      #:[.'.]:>-   * p/ci: rápido para CI/CD.
+      #:[.'.]:>-   * archivo local .semgrep.yml para reglas custom.
+      - name: Semgrep Scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: auto
+
+      #:[.'.]:>- Subir resultados SARIF a GitHub Code Scanning (opcional).
+      #:[.'.]:>- Requiere permissions: security-events: write.
+      #:[.'.]:>- Opciones:
+      #:[.'.]:>- - sarif_file: ruta al archivo SARIF generado por Semgrep.
+      #:[.'.]:>- - category: etiqueta para diferenciar escaneos en Code Scanning.
+      #:[.'.]:>- Nota: Semgrep action genera semgrep.sarif automáticamente.
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+      #:[.'.]:>- Guardar archivo SARIF como artefacto del workflow.
+      #:[.'.]:>- Permite descargar el reporte desde la pestaña Actions.
+      #:[.'.]:>- Opciones:
+      #:[.'.]:>- - retention-days: días antes de borrar (default: 90).
+      #:[.'.]:>- - if-no-files-found: warn|error|ignore.
+      - name: Save SARIF Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-sarif
+          path: semgrep.sarif
