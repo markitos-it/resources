@@ -97,3 +97,88 @@ jobs:
         uses: returntocorp/semgrep-action@v1
         with:
           config: auto
+
+  dependencies:
+    name: Dependency Scanning
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deps-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+    steps:
+      #:[.'.]:>- Checkout del código.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      #:[.'.]:>- Escaneo de vulnerabilidades en dependencias con Trivy (Aquasec).
+      #:[.'.]:>- Herramienta madura, open source, sin registro requerido.
+      #:[.'.]:>- Escanea: pip, npm, gem, maven, gradle, nuget, composer, etc.
+      #:[.'.]:>- Opciones:
+      #:[.'.]:>- - --severity MEDIUM,HIGH,CRITICAL: filtra por nivel mínimo.
+      #:[.'.]:>- - --scanners vuln: solo escanea vulnerabilidades.
+      #:[.'.]:>- - --exit-code 0: no falla aunque encuentre vulnerabilidades.
+      #:[.'.]:>- Nota: Resultados visibles en logs del workflow.
+      - name: Trivy Dependency Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          severity: "MEDIUM,HIGH,CRITICAL"
+          format: "table"
+          exit-code: "0"
+
+  infrastructure:
+    name: Infrastructure as Code Scanning
+    runs-on: ubuntu-latest
+    concurrency:
+      group: iac-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+    steps:
+      #:[.'.]:>- Checkout del código.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      #:[.'.]:>- Escaneo de misconfigurations IaC con Checkov (Bridgecrew).
+      #:[.'.]:>- Herramienta madura, open source, sin registro requerido.
+      #:[.'.]:>- Escanea: Terraform, CloudFormation, Kubernetes, Docker, etc.
+      #:[.'.]:>- Opciones:
+      #:[.'.]:>- - --quiet: salida mínima.
+      #:[.'.]:>- - --compact: formato compacto.
+      #:[.'.]:>- - --framework: especifica frameworks (terraform, k8s, dockerfile, etc).
+      #:[.'.]:>- Nota: Resultados visibles en logs del workflow.
+      - name: Checkov IaC Scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          quiet: true
+          compact: true
+          framework: all
+          output_format: cli
+          download_external_checks: false
+
+  linting:
+    name: Bash Linting
+    runs-on: ubuntu-latest
+    concurrency:
+      group: lint-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+    steps:
+      #:[.'.]:>- Checkout del código.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      #:[.'.]:>- Linting de scripts Bash con ShellCheck.
+      #:[.'.]:>- Detecta bugs, código inseguro, estilo poor en bash.
+      #:[.'.]:>- Opciones:
+      #:[.'.]:>- find: localiza todos los archivos .sh.
+      #:[.'.]:>- --severity=warning: nivel mínimo de severidad.
+      #:[.'.]:>- Nota: Resultados visibles en logs del workflow.
+      - name: ShellCheck Scan
+        run: |
+          sudo apt-get install -y shellcheck
+          find . -type f -name "*.sh" -print0 | xargs -0 shellcheck --severity=warning || true
