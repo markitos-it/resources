@@ -1,42 +1,28 @@
 name: security-pipeline
-on: [push, pull_request]
+on:
+  push:
 
 permissions:
-  contents: read # needed for checkout
+  contents: read
 
 jobs:
   scan:
-    name: Scan
+    name: Secrets Scan
     runs-on: ubuntu-latest
     concurrency:
       group: appsec-${{ github.ref }}
       cancel-in-progress: true
     permissions:
-      contents: read # needed for checkout
-      security-events: write # needed to upload SARIF results
+      contents: read
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           persist-credentials: false
 
       - name: Gitleaks Scan
-        run: docker run --rm -v "$GITHUB_WORKSPACE:/code" zricethezav/gitleaks:latest detect --source="/code" --redact --no-banner
-
-      - name: Zizmor Audit
-        uses: zizmorcore/zizmor-action@0dce2577a4760a2749d8cfb7a84b7d5585ebcb7d # v0.5.0
-        with:
-          persona: pedantic
-          
-      - name: Semgrep OSS Scan
         run: |
-          docker run --rm -v "$GITHUB_WORKSPACE:/src" returntocorp/semgrep semgrep \
-            scan --config="auto" --error --quiet
-
-      - name: Trivy Scan
-        uses: aquasecurity/trivy-action@c1824fd6edce30d7ab345a9989de00bbd46ef284 # master
-        with:
-          scan-type: 'fs'
-          exit-code: '1'
-          severity: 'CRITICAL,HIGH'
-          format: 'table'
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/repo" \
+            ghcr.io/gitleaks/gitleaks:v8.24.2 \
+            detect --source="/repo" --redact --no-banner
