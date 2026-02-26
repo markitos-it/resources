@@ -1,12 +1,3 @@
-#!/usr/bin/env bash
-#:[.'.]:>- ==================================================================================
-#:[.'.]:>- Marco Antonio - The Way of the Artisan
-#:[.'.]:>- markitos.es.info@gmail.com
-#:[.'.]:>- 🌍 https://github.com/orgs/markitos-it/repositories
-#:[.'.]:>- 📺 https://www.youtube.com/@markitos_devsecops
-#:[.'.]:>- ==================================================================================
-
-
 #:[.'.]:>-==================================================================================
 #:[.'.]:>- Alias para configurar git con un solo comando. Personaliza los valores antes de usarlo.
 #:[.'.]:>- Asegúrate de reemplazar "put your name here", "put your github email here", y "github" con tus datos reales.
@@ -22,4 +13,15 @@ git config push.default simple && \
 git config credential.helper osxkeychain && \
 git config pull.rebase false && \
 git config core.filemode false'
+
+#:[.'.]:>-==================================================================================
+#:[.'.]:>- Alias para comandos comunes de git y navegación rápida en el sistema de archivos
+#:[.'.]:>- Personaliza las rutas en los alias de navegación según tu estructura de directorios.
+#:[.'.]:>- Inserta estos alias en tu .zshrc o .bashrc para usarlos en tu terminal.
+#:[.'.]:>-==================================================================================
+alias ggs="git status"
+alias ggp="git pull"
+alias ccdd="cd && cd development"
+alias ccdg="cd && cd development/github/"
+alias ccdr="cd && cd development/github/markitos-it/resources" 
 #:[.'.]:>-==================================================================================
