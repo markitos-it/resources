@@ -1,0 +1,49 @@
+#:[.'.]:>- ===================================================================================
+#:[.'.]:>- Marco Antonio - markitos devsecops kulture
+#:[.'.]:>- The Way of the Artisan
+#:[.'.]:>- markitos.es.info@gmail.com
+#:[.'.]:>- 🌍 https://github.com/orgs/markitos-it/repositories
+#:[.'.]:>- 🌍 https://github.com/orgs/markitos-public/repositories
+#:[.'.]:>- 📺 https://www.youtube.com/@markitos_devsecops
+#:[.'.]:>- ===================================================================================
+
+repos:
+  #:[.'.]:>------------------------------------------------------------------------------------
+  #:[.'.]:>- Repo 1: Gitleaks para detección de secretos en commits/archivos.
+  #:[.'.]:>- rev: versión fija para builds reproducibles.
+  #:[.'.]:>- Opciones:
+  #:[.'.]:>- - mover a una versión más reciente cuando quieras actualizar reglas.
+  #:[.'.]:>- - añadir args con config propia (.gitleaks.toml) si necesitas tuning.
+  #:[.'.]:>-------------------------------------------------------------------------------------
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.2
+    #:[.'.]:>- Hook: ejecuta escaneo de secrets.
+    #:[.'.]:>- Opciones soportadas en pre-commit (ejemplo):
+    #:[.'.]:>- - args: ["--verbose"]
+    #:[.'.]:>- - stages: [commit, push]
+    #:[.'.]:>- - pass_filenames: false
+    hooks:
+      - id: gitleaks
+        args: ["--verbose"]
+  #:[.'.]:>------------------------------------------------------------------------------------
+
+  #:[.'.]:>-----------------------------------------------------------------------------------
+  #:[.'.]:>- Repo 2: Hooks base de higiene de código y repos.
+  #:[.'.]:>- rev: versión fija para estabilidad.
+  #:[.'.]:>-----------------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    #:[.'.]:>- 1. Valida sintaxis YAML.
+    #:[.'.]:>- 2. Garantiza salto de línea al final del archivo.
+    #:[.'.]:>- 3. Elimina espacios en blanco al final de línea.
+    #:[.'.]:>- 4. Bloquea archivos grandes agregados por error.
+    #:[.'.]:>- Opciones:
+    #:[.'.]:>- - stages: [commit] (solo en commit, no push)
+    #:[.'.]:>- - exclude: "docs/.*" (ignora archivos en docs/)
+    #:[.'.]:>- - args: ["--maxkb=1024"] (limita archivos a 1MB)
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-added-large-files
+  #:[.'.]:>------------------------------------------------------------------------------------
