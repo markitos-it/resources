@@ -78,9 +78,7 @@ ask_install() {
     done
 }
 
-# ── sudo: autenticar una sola vez al inicio ───────────────────
 sudo_init() {
-    # Comprueba si ya tenemos ticket válido sin pedir password
     if sudo -n true 2>/dev/null; then
         print_success "sudo — ticket activo, no se necesita contraseña"
         return 0
@@ -89,11 +87,8 @@ sudo_init() {
     print_info "Se necesita sudo para instalar dependencias del sistema."
     print_info "Introduce tu contraseña una sola vez — no se usará root para nada más."
     echo ""
-    # -v: valida/renueva el ticket; el usuario sigue siendo $USER
     if sudo -v; then
         print_success "sudo autenticado — no se volverá a pedir durante esta sesión"
-        # Mantener el ticket vivo en background mientras dure el script
-        # Se cancela automáticamente cuando el script termina
         ( while true; do sudo -n true; sleep 50; done ) &
         SUDO_KEEPALIVE_PID=$!
         trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true' EXIT
@@ -132,7 +127,7 @@ append_if_missing() {
         print_success "Añadido → ${file}"
         echo -e "${DIM}  ${line}${NC}"
     else
-        print_warn "Ya existe en profile → $(basename "$file"): ${line}"
+        echo -e "${DIM}✔  profile ya tiene → ${line}${NC}"
     fi
 }
 
@@ -146,22 +141,46 @@ else
     SHELL_NAME="bash"
 fi
 
+# ── Detect arch for gcloud ────────────────────────────────────
+detect_arch() {
+    local os arch
+    os="$(uname -s)"
+    arch="$(uname -m)"
+    case "$os" in
+        Linux)
+            case "$arch" in
+                x86_64|amd64)  echo "linux-x86_64" ;;
+                aarch64|arm64) echo "linux-arm" ;;
+                *)             echo "" ;;
+            esac ;;
+        Darwin)
+            case "$arch" in
+                x86_64|amd64)  echo "darwin-x86_64" ;;
+                arm64)         echo "darwin-arm" ;;
+                *)             echo "" ;;
+            esac ;;
+        *) echo "" ;;
+    esac
+}
+
 NVM_DIR="$HOME/.nvm"
 NVM_VERSION="v0.40.3"
 TFENV_ROOT="$HOME/.tfenv"
 GOENV_ROOT="${GOENV_ROOT:-$HOME/.goenv}"
+GCLOUD_DIR="${GCLOUD_INSTALL_DIR:-$HOME/google-cloud-sdk}"
+GCLOUD_ARCH="${GCLOUD_ARCH:-$(detect_arch)}"
 
 INSTALLED_NVM=false
 INSTALLED_TFENV=false
 INSTALLED_GOENV=false
+INSTALLED_GCLOUD=false
 
 # ════════════════════════════════════════════════════════════
 #  PLAN
 # ════════════════════════════════════════════════════════════
-clear
 echo ""
 print_line
-echo -e "${CYAN}${BOLD}Artisan DevTools Bootstrap  •  nvm · tfenv · goenv${NC}"
+echo -e "${CYAN}${BOLD}Artisan DevTools Bootstrap  •  nvm · tfenv · goenv · gcloud${NC}"
 echo -e "${DIM}markitos devsecops kulture — The Way of the Artisan${NC}"
 print_line
 echo ""
@@ -175,27 +194,29 @@ fi
 echo ""
 echo -e "${BOLD}Entorno${NC}"
 print_kv "OS"      "$OS_NAME  /  $SHELL_NAME"
+print_kv "Arch"    "$GCLOUD_ARCH"
 print_kv "Profile" "$PROFILE_FILE"
 
 echo ""
 echo -e "${BOLD}Qué se instalará/actualizará y dónde${NC}"
-[[ -d "$NVM_DIR"    ]] && echo -e "${YELLOW}①${NC}  ${BOLD}nvm${NC}   ${DIM}→${NC}  ${CYAN}${NVM_DIR}${NC}  ${GREEN}(ya existe — actualizará)${NC}" \
-                        || echo -e "${YELLOW}①${NC}  ${BOLD}nvm${NC}   ${DIM}→${NC}  ${CYAN}${NVM_DIR}${NC}  ${DIM}(nueva instalación)${NC}"
-[[ -d "$TFENV_ROOT" ]] && echo -e "${YELLOW}②${NC}  ${BOLD}tfenv${NC} ${DIM}→${NC}  ${CYAN}${TFENV_ROOT}${NC}  ${GREEN}(ya existe — actualizará)${NC}" \
-                        || echo -e "${YELLOW}②${NC}  ${BOLD}tfenv${NC} ${DIM}→${NC}  ${CYAN}${TFENV_ROOT}${NC}  ${DIM}(nueva instalación)${NC}"
-[[ -d "$GOENV_ROOT" ]] && echo -e "${YELLOW}③${NC}  ${BOLD}goenv${NC} ${DIM}→${NC}  ${CYAN}${GOENV_ROOT}${NC}  ${GREEN}(ya existe — actualizará)${NC}" \
-                        || echo -e "${YELLOW}③${NC}  ${BOLD}goenv${NC} ${DIM}→${NC}  ${CYAN}${GOENV_ROOT}${NC}  ${DIM}(nueva instalación)${NC}"
+[[ -d "$NVM_DIR"    ]] && echo -e "${YELLOW}①${NC}  ${BOLD}nvm${NC}    ${DIM}→${NC}  ${CYAN}${NVM_DIR}${NC}  ${GREEN}(ya existe — actualizará)${NC}" \
+                        || echo -e "${YELLOW}①${NC}  ${BOLD}nvm${NC}    ${DIM}→${NC}  ${CYAN}${NVM_DIR}${NC}  ${DIM}(nueva instalación)${NC}"
+[[ -d "$TFENV_ROOT" ]] && echo -e "${YELLOW}②${NC}  ${BOLD}tfenv${NC}  ${DIM}→${NC}  ${CYAN}${TFENV_ROOT}${NC}  ${GREEN}(ya existe — actualizará)${NC}" \
+                        || echo -e "${YELLOW}②${NC}  ${BOLD}tfenv${NC}  ${DIM}→${NC}  ${CYAN}${TFENV_ROOT}${NC}  ${DIM}(nueva instalación)${NC}"
+[[ -d "$GOENV_ROOT" ]] && echo -e "${YELLOW}③${NC}  ${BOLD}goenv${NC}  ${DIM}→${NC}  ${CYAN}${GOENV_ROOT}${NC}  ${GREEN}(ya existe — actualizará)${NC}" \
+                        || echo -e "${YELLOW}③${NC}  ${BOLD}goenv${NC}  ${DIM}→${NC}  ${CYAN}${GOENV_ROOT}${NC}  ${DIM}(nueva instalación)${NC}"
+[[ -d "$GCLOUD_DIR" ]] && echo -e "${YELLOW}④${NC}  ${BOLD}gcloud${NC} ${DIM}→${NC}  ${CYAN}${GCLOUD_DIR}${NC}  ${GREEN}(ya existe — actualizará)${NC}" \
+                        || echo -e "${YELLOW}④${NC}  ${BOLD}gcloud${NC} ${DIM}→${NC}  ${CYAN}${GCLOUD_DIR}${NC}  ${DIM}(nueva instalación)${NC}"
 
 echo ""
 echo -e "${BOLD}Qué se añadirá a ${CYAN}${PROFILE_FILE}${NC}${BOLD} (solo si no existe)${NC}"
-echo -e "${DIM}① nvm   — NVM_DIR, carga nvm.sh y bash_completion${NC}"
-echo -e "${DIM}② tfenv — \$HOME/.tfenv/bin en PATH${NC}"
-echo -e "${DIM}③ goenv — GOENV_ROOT, bin en PATH, goenv init, GOROOT/GOPATH${NC}"
+echo -e "${DIM}① nvm    — NVM_DIR, carga nvm.sh y bash_completion${NC}"
+echo -e "${DIM}② tfenv  — \$HOME/.tfenv/bin en PATH${NC}"
+echo -e "${DIM}③ goenv  — GOENV_ROOT, bin en PATH, goenv init, GOROOT/GOPATH${NC}"
+echo -e "${DIM}④ gcloud — source path.bash.inc + completion.bash.inc${NC}"
 
 echo ""
 print_line
-
-# ── Confirmación + sudo en el mismo momento ───────────────────
 ask_confirm
 sudo_init
 
@@ -204,7 +225,7 @@ sudo_init
 # ════════════════════════════════════════════════════════════
 section_start "PREREQS" "Verificando dependencias del sistema"
 
-for cmd in curl git tar; do
+for cmd in curl git tar python3; do
     if need_cmd "$cmd"; then
         print_success "$cmd → $(command -v "$cmd")"
     else
@@ -213,7 +234,7 @@ for cmd in curl git tar; do
     fi
 done
 
-print_info "Instalando build-essentials vía apt..."
+print_info "Instalando dependencias vía apt..."
 sudo apt-get update -qq
 sudo apt-get install -y -qq \
     build-essential libssl-dev libreadline-dev \
@@ -251,7 +272,7 @@ if ask_install "nvm (Node Version Manager)"; then
         nvm install --lts
         nvm alias default node
     else
-        print_already "node $(node --version) ya instalado — omitiendo descarga"
+        print_info "node $(node --version) ya instalado — omitiendo descarga"
     fi
 
     print_success "nvm $(nvm --version)"
@@ -269,7 +290,7 @@ fi
 
 # ════════════════════════════════════════════════════════════
 #  TFENV
-# ═══��════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════
 if ask_install "tfenv (Terraform Version Manager)"; then
 
     section_start "TFENV" "Terraform Version Manager — gestión de versiones de Terraform"
@@ -292,7 +313,7 @@ if ask_install "tfenv (Terraform Version Manager)"; then
     export PATH="$TFENV_ROOT/bin:$PATH"
 
     if need_cmd terraform; then
-        print_already "$(terraform --version | head -1) ya instalado — omitiendo descarga"
+        print_info "$(terraform --version | head -1) ya instalado — omitiendo descarga"
         tfenv use latest 2>/dev/null || true
     else
         print_info "Instalando última versión de Terraform..."
@@ -424,9 +445,106 @@ if ask_install "goenv (Go Version Manager)"; then
 
     INSTALLED_GOENV=true
     section_end "GOENV" "Go Version Manager listo"
+    pause
 
 else
     print_skip "goenv"
+fi
+
+# ════════════════════════════════════════════════════════════
+#  GCLOUD
+# ════════════════════════════════════════════════════════════
+if ask_install "gcloud (Google Cloud SDK)"; then
+
+    section_start "GCLOUD" "Google Cloud SDK — CLI oficial de Google Cloud"
+
+    if [[ -z "$GCLOUD_ARCH" ]]; then
+        print_error "Arquitectura no soportada. Usa GCLOUD_ARCH=linux-x86_64 para forzarla."
+        exit 1
+    fi
+
+    # Obtener última versión desde el JSON oficial
+    print_info "Consultando última versión disponible..."
+    GCLOUD_VERSION="$(
+        curl -fsSL "https://dl.google.com/dl/cloudsdk/channels/rapid/components-2.json" | \
+        python3 -c 'import json,sys;print(json.load(sys.stdin).get("version",""))'
+    )"
+    if [[ -z "$GCLOUD_VERSION" ]]; then
+        print_error "No se pudo determinar la versión de gcloud."
+        exit 1
+    fi
+
+    print_kv "Versión"     "$GCLOUD_VERSION"
+    print_kv "Arch"        "$GCLOUD_ARCH"
+    print_kv "Directorio"  "$GCLOUD_DIR"
+    print_kv "Profile"     "$PROFILE_FILE"
+
+    if [[ -d "$GCLOUD_DIR" ]]; then
+        # Ya existe — actualizar con gcloud components update
+        print_already "gcloud en $GCLOUD_DIR"
+        if [[ -x "$GCLOUD_DIR/bin/gcloud" ]]; then
+            print_info "Actualizando componentes con gcloud components update..."
+            "$GCLOUD_DIR/bin/gcloud" components update --quiet
+            print_success "gcloud actualizado"
+        else
+            print_warn "Directorio existe pero gcloud no encontrado — reinstalando..."
+            rm -rf "$GCLOUD_DIR"
+        fi
+    fi
+
+    # Instalación fresca si no existe (o fue borrado arriba)
+    if [[ ! -d "$GCLOUD_DIR" ]]; then
+        TARBALL="google-cloud-cli-${GCLOUD_VERSION}-${GCLOUD_ARCH}.tar.gz"
+        DOWNLOAD_URL="https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${TARBALL}"
+
+        tmp_dir="$(mktemp -d)"
+        gcloud_cleanup() { rm -rf "$tmp_dir"; }
+        trap 'gcloud_cleanup; kill "${SUDO_KEEPALIVE_PID:-0}" 2>/dev/null || true' EXIT
+
+        print_info "Descargando ${TARBALL}..."
+        curl -fsSL "$DOWNLOAD_URL" -o "$tmp_dir/$TARBALL"
+
+        print_info "Extrayendo en $(dirname "$GCLOUD_DIR")..."
+        mkdir -p "$(dirname "$GCLOUD_DIR")"
+        tar -xzf "$tmp_dir/$TARBALL" -C "$(dirname "$GCLOUD_DIR")"
+
+        if [[ ! -x "$GCLOUD_DIR/bin/gcloud" ]]; then
+            print_error "gcloud no encontrado tras la extracción."
+            exit 1
+        fi
+
+        print_info "Ejecutando install.sh..."
+        "$GCLOUD_DIR/install.sh" --quiet
+        print_success "gcloud instalado"
+    fi
+
+    # Profile
+    if [[ "$SHELL_NAME" == "zsh" ]]; then
+        append_if_missing "source '${GCLOUD_DIR}/path.zsh.inc'"        "$PROFILE_FILE"
+        append_if_missing "source '${GCLOUD_DIR}/completion.zsh.inc'"  "$PROFILE_FILE"
+    else
+        append_if_missing "source '${GCLOUD_DIR}/path.bash.inc'"        "$PROFILE_FILE"
+        append_if_missing "source '${GCLOUD_DIR}/completion.bash.inc'"  "$PROFILE_FILE"
+    fi
+
+    # Cargar en sesión actual
+    if [[ "$SHELL_NAME" == "zsh" ]]; then
+        [[ -f "${GCLOUD_DIR}/path.zsh.inc" ]]       && source "${GCLOUD_DIR}/path.zsh.inc"
+        [[ -f "${GCLOUD_DIR}/completion.zsh.inc" ]] && source "${GCLOUD_DIR}/completion.zsh.inc"
+    else
+        [[ -f "${GCLOUD_DIR}/path.bash.inc" ]]       && source "${GCLOUD_DIR}/path.bash.inc"
+        [[ -f "${GCLOUD_DIR}/completion.bash.inc" ]] && source "${GCLOUD_DIR}/completion.bash.inc"
+    fi
+
+    print_success "$(gcloud --version | head -1)"
+    print_kv "Ubicación gcloud" "$(command -v gcloud)"
+
+    INSTALLED_GCLOUD=true
+    section_end "GCLOUD" "Google Cloud SDK listo"
+    pause
+
+else
+    print_skip "gcloud"
 fi
 
 # ════════════════════════════════════════════════════════════
@@ -484,6 +602,18 @@ if [[ "$INSTALLED_GOENV" == true ]]; then
     fi
 else
     echo -e "${DIM}⊘  goenv — no instalado en esta ejecución${NC}"
+fi
+
+if [[ "$INSTALLED_GCLOUD" == true ]]; then
+    if need_cmd gcloud; then
+        print_success "$(gcloud --version | head -1)"
+        print_kv "gcloud bin" "$(command -v gcloud)"
+    else
+        print_error "gcloud no encontrado tras la instalación"
+        check_ok=false
+    fi
+else
+    echo -e "${DIM}⊘  gcloud — no instalado en esta ejecución${NC}"
 fi
 
 echo ""
