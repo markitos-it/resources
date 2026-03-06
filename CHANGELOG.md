@@ -1,3 +1,15 @@
+## v0.1.2 (2026-03-06)
+
+### 🐛 Bug Fixes
+
+- (release) release v0.1.1 ([`84bc1e0`])
+- (release) appsec action ([`e5813a4`])
+- (release) release v0.1.1: update .github/workflows/appsec.yaml ([`fdb3a45`])
+
+### ⚡ Performance
+
+- (release) appsec action ([`19413b1`])
+
 ## v0.1.1 (2026-03-06)
 
 ### 🐛 Bug Fixes

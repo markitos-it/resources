@@ -256,13 +256,20 @@ if ask_install "nvm (Node Version Manager)"; then
     print_kv "Directorio"  "$NVM_DIR"
     print_kv "Profile"     "$PROFILE_FILE"
 
-    if [[ -d "$NVM_DIR" ]]; then
+    if [[ -d "$NVM_DIR/.git" ]]; then
         print_already "nvm en $NVM_DIR"
+        git -C "$NVM_DIR" fetch --tags --quiet
+        git -C "$NVM_DIR" checkout --quiet "$NVM_VERSION"
+    elif [[ -d "$NVM_DIR" ]]; then
+        print_warn "$NVM_DIR existe pero no es un repo git; se reutiliza sin actualizar versión"
     else
-        print_info "Primera instalación de nvm..."
+        print_info "Primera instalación de nvm (git clone)..."
+        git clone --depth=1 --branch "$NVM_VERSION" https://github.com/nvm-sh/nvm.git "$NVM_DIR"
     fi
 
-    curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | bash
+    append_if_missing "export NVM_DIR=\"\$HOME/.nvm\"" "$PROFILE_FILE"
+    append_if_missing "[ -s \"\$NVM_DIR/nvm.sh\" ] && \\. \"\$NVM_DIR/nvm.sh\"" "$PROFILE_FILE"
+    append_if_missing "[ -s \"\$NVM_DIR/bash_completion\" ] && \\. \"\$NVM_DIR/bash_completion\"" "$PROFILE_FILE"
 
     export NVM_DIR="$NVM_DIR"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
@@ -498,8 +505,6 @@ if ask_install "gcloud (Google Cloud SDK)"; then
         DOWNLOAD_URL="https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${TARBALL}"
 
         tmp_dir="$(mktemp -d)"
-        gcloud_cleanup() { rm -rf "$tmp_dir"; }
-        trap 'gcloud_cleanup; kill "${SUDO_KEEPALIVE_PID:-0}" 2>/dev/null || true' EXIT
 
         print_info "Descargando ${TARBALL}..."
         curl -fsSL "$DOWNLOAD_URL" -o "$tmp_dir/$TARBALL"
@@ -515,6 +520,7 @@ if ask_install "gcloud (Google Cloud SDK)"; then
 
         print_info "Ejecutando install.sh..."
         "$GCLOUD_DIR/install.sh" --quiet
+        rm -rf "$tmp_dir"
         print_success "gcloud instalado"
     fi
 
