@@ -2,8 +2,8 @@ name: appsec
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
 
 env:
@@ -46,4 +46,4 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: test
-          args: --severity-threshold=high deployment/kubernetes
+          args: --severity-threshold=high

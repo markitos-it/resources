@@ -4,6 +4,12 @@
 
 - local working tree changes: .github/workflows/appsec.yaml ([`local`])
 
+## v0.1.1 (2026-03-06)
+
+### 🔧 Chores
+
+- local working tree changes: .github/workflows/appsec.yaml ([`local`])
+
 ## v0.1.0 (2026-03-06)
 
 ### ✨ Features
