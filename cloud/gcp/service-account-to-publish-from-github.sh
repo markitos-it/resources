@@ -62,14 +62,14 @@
 #:[.'.]:>- - GITHUB_ORG: Organización o usuario de GitHub donde está el repositorio
 #:[.'.]:>- - GITHUB_REPO: Nombre del repositorio de GitHub donde están los workflows
 #:[.'.]:>- =============================================================================
-PROJECT_ID="markitos-it-labs-course-basic"
-REGION="europe-southwest1"
-REPOSITORY="private"
-SERVICE_ACCOUNT_NAME="github-actions-publisher"
-WORKLOAD_POOL_NAME="github-pool"
-WORKLOAD_PROVIDER_NAME="github-provider"
-GITHUB_ORG="markitos-it"
-GITHUB_REPO="markitos-it-app-website"
+PROJECT_ID="put-your-project-id-here" # ej: markitos-it-labs-course-basic
+REGION="put-your-artifact-registry-region-here" # ej: us-central1
+REPOSITORY="put-your-artifact-registry-repo-here" # ej: private
+SERVICE_ACCOUNT_NAME="put-your-service-account-name-here" # ej: gh-publisher
+WORKLOAD_POOL_NAME="put-your-workload-pool-name-here" # ej: gh-pool
+WORKLOAD_PROVIDER_NAME="put-your-workload-provider-name-here" # ej: gh-provider
+GITHUB_ORG="put-your-github-org-here" # ej: markitos-it
+GITHUB_REPO="put-your-github-repo-here" # ej: markitos-it-app-website
 
 #:[.'.]:>- =============================================================================
 #:[.'.]:>- PASO 1: CREAR SERVICE ACCOUNT
@@ -213,10 +213,10 @@ echo ""
 #:[.'.]:>- 4. Agrega los siguientes secretos:
 #
 #:[.'.]:>-    Nombre: WIF_PROVIDER
-#:[.'.]:>-    Valor: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+#:[.'.]:>-    Valor: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/<put-your-workload-pool-name-here>/providers/<put-your-workload-provider-name-here>
 #
 #:[.'.]:>-    Nombre: WIF_SERVICE_ACCOUNT
-#:[.'.]:>-    Valor: github-actions-publisher@markitos-it-labs-course-basic.iam.gserviceaccount.com
+#:[.'.]:>-    Valor: <put-your-service-account-name-here>@<put-your-project-id-here>.iam.gserviceaccount.com
 #
 #:[.'.]:>- Estos secretos son usados en el workflow publish-image.yaml para autenticarse
 #:[.'.]:>- con GCP sin necesidad de claves JSON, usando Workload Identity Federation
