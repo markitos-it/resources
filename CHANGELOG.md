@@ -1,5 +1,11 @@
 ## v0.1.1 (2026-03-06)
 
+### 🐛 Bug Fixes
+
+- (release) release v0.1.1: update .github/workflows/appsec.yaml ([`fdb3a45`])
+
+## v0.1.1 (2026-03-06)
+
 ### 🔧 Chores
 
 - local working tree changes: .github/workflows/appsec.yaml ([`local`])

@@ -2,48 +2,93 @@ name: appsec
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
-
-env:
-  IMAGE_NAME: ${{ github.event.repository.name }}
 
 permissions:
   contents: read
 
 jobs:
-  secrets-scan:
-    name: Secrets Scan
+  secrets:
+    name: Secrets Scan (Gitleaks)
     runs-on: ubuntu-latest
     concurrency:
-      group: snyk-code-${{ github.ref }}
+      group: appsec-secrets-${{ github.ref }}
       cancel-in-progress: true
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Gitleaks Scan
-        run: |
-          docker run --rm \
-            -v "${{ github.workspace }}:/repo" \
-            ghcr.io/gitleaks/gitleaks:latest \
-            detect --source="/repo" --redact --no-banner --verbose
-
-  snyk-iac:
-    name: Snyk IaC Scan
-    runs-on: ubuntu-latest
-    concurrency:
-      group: snyk-iac-${{ github.ref }}
-      cancel-in-progress: true
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Run Snyk IaC
-        uses: snyk/actions/iac@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          command: test
-          args: --severity-threshold=high
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  bash-lint:
+    name: Bash Lint (ShellCheck)
+    runs-on: ubuntu-latest
+    concurrency:
+      group: appsec-bash-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          find . -type f -name "*.sh" -print0 | xargs -0 -r shellcheck -S warning
+
+  workflow-lint:
+    name: Workflow Lint (actionlint)
+    runs-on: ubuntu-latest
+    concurrency:
+      group: appsec-workflow-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: actionlint
+        uses: rhysd/actionlint@v1
+
+  yaml-lint:
+    name: YAML Lint (yamllint)
+    runs-on: ubuntu-latest
+    concurrency:
+      group: appsec-yaml-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: yamllint
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yamllint
+          yamllint .
+
+  config-scan:
+    name: Config Misconfig Scan (Trivy)
+    runs-on: ubuntu-latest
+    concurrency:
+      group: appsec-trivy-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Trivy config scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "1"
