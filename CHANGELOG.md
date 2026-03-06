@@ -1,3 +1,9 @@
+## v0.2.0 (2026-03-06)
+
+### 🔧 Chores
+
+- local working tree changes: .github/workflows/appsec.yml ([`local`])
+
 ## v0.1.2 (2026-03-06)
 
 ### 🐛 Bug Fixes

@@ -17,6 +17,12 @@ name: appsec-pipeline
 #:[.'.]:>- - schedule: ejecución por cron.
 on:
   push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 #:[.'.]:>- Permisos mínimos para seguridad:
 #:[.'.]:>- - contents: read permite leer el repositorio.
